@@ -20,6 +20,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // AdMob - Reemplaza con tu ID de aplicación real
+        manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-3940256099942544~3347511713"
     }
 
     buildTypes {
@@ -84,6 +87,9 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    // AdMob
+    implementation("com.google.android.gms:play-services-ads:23.1.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

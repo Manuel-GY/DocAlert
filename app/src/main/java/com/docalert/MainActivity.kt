@@ -20,7 +20,9 @@ import com.docalert.ui.screens.adddocument.AddDocumentScreen
 import com.docalert.ui.screens.camera.CameraScreen
 import com.docalert.ui.screens.detail.DocumentDetailScreen
 import com.docalert.ui.screens.home.HomeScreen
+import com.docalert.ui.screens.settings.SettingsScreen
 import com.docalert.ui.theme.DocAlertTheme
+import com.docalert.util.AdManager
 import com.docalert.util.DateUtils
 import com.docalert.viewmodel.DocumentViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -55,13 +57,22 @@ fun DocAlertNavHost(
     var pendingExtractedText by remember { mutableStateOf<String>("") }
 
     val context = LocalContext.current
+    val activity = context as? ComponentActivity
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is DocumentViewModel.UiEvent.DocumentSaved -> {
-                    Toast.makeText(context, "Documento guardado", Toast.LENGTH_SHORT).show()
-                    navController.popBackStack()
+                    // Mostrar anuncio intersticial después de guardar
+                    activity?.let {
+                        AdManager.showInterstitialAd(it) {
+                            Toast.makeText(context, "Documento guardado", Toast.LENGTH_SHORT).show()
+                            navController.popBackStack()
+                        }
+                    } ?: run {
+                        Toast.makeText(context, "Documento guardado", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    }
                 }
                 is DocumentViewModel.UiEvent.DocumentDeleted -> {
                     Toast.makeText(context, "Documento eliminado", Toast.LENGTH_SHORT).show()
@@ -94,6 +105,9 @@ fun DocAlertNavHost(
                     pendingExtractedDate = null
                     pendingExtractedText = ""
                     navController.navigate("add")
+                },
+                onSettingsClick = {
+                    navController.navigate("settings")
                 }
             )
         }
@@ -193,6 +207,14 @@ fun DocAlertNavHost(
                 onTakePhoto = {
                     navController.navigate("camera")
                 },
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("settings") {
+            SettingsScreen(
                 onBack = {
                     navController.popBackStack()
                 }
