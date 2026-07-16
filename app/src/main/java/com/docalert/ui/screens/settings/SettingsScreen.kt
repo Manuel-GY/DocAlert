@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.docalert.DocAlertApp
 import com.docalert.util.AdManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,8 +26,9 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
-    val sharedPreferences = context.getSharedPreferences("docalert_prefs", Context.MODE_PRIVATE)
-    var isPremium by remember { mutableStateOf(AdManager.isPremiumUser()) }
+    val app = context.applicationContext as DocAlertApp
+    val billingManager = app.billingManager
+    val isPremium by billingManager.isPremium.collectAsState()
 
     Scaffold(
         topBar = {
@@ -103,7 +105,6 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     if (!isPremium) {
-                        // Lista de beneficios
                         BenefitItem("Elimina todos los anuncios")
                         BenefitItem("Soporte prioritario")
                         BenefitItem("Funciones futuras premium")
@@ -112,11 +113,9 @@ fun SettingsScreen(
 
                         Button(
                             onClick = {
-                                // Simular compra premium
-                                // En producción, aquí iría la integración con Google Play Billing
-                                isPremium = true
-                                AdManager.setPremium(true)
-                                sharedPreferences.edit().putBoolean("is_premium", true).apply()
+                                activity?.let {
+                                    billingManager.launchPremiumPurchase(it)
+                                }
                             },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
@@ -150,9 +149,6 @@ fun SettingsScreen(
                                 activity?.let {
                                     AdManager.showRewardedAd(it) {
                                         // Recompensa: sin anuncios por 1 hora
-                                        sharedPreferences.edit()
-                                            .putLong("ad_free_until", System.currentTimeMillis() + 3600000)
-                                            .apply()
                                     }
                                 }
                             },
@@ -167,7 +163,6 @@ fun SettingsScreen(
                             Text("Ver anuncio para 1 hora sin ads")
                         }
                     } else {
-                        // Usuario premium
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
